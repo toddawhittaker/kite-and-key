@@ -15,6 +15,7 @@ Rules:
 - Content stays CMS-driven — define/extend Payload collections rather than hardcoding editable content.
 - **You author CI/CD and deploy config** when the plan calls for it — `.github/workflows/*.yml`, migration steps, env wiring — following existing patterns. The devops-reviewer reviews it; don't self-approve.
 - Keep changes scoped to the plan. Note anything you touched beyond it and why.
+- **Never edit or delete a test file.** The test-author owns tests. In a TDD pass you build production code against a red suite until it's green. If you believe a test is wrong (over-specified, tests the wrong thing, contradicts the plan), **do not change it** — stop and escalate to the PM with your reasoning. The PM arbitrates; only the test-author changes tests. Editing a test to make it pass is a workflow violation the PM diff-gate will catch and revert. (Harness config like `vitest.config.ts`/`playwright.config.ts` is not a test file — you may touch it when the plan calls for it.)
 - Run the project's build/lint/typecheck after your changes when they exist; report failures honestly rather than papering over them.
 - Invoke the `verify` skill to confirm nontrivial changes actually work end-to-end before returning.
 
