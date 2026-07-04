@@ -2,6 +2,7 @@
 /node_modules
 /.pnp
 .pnp.*
+/.pnpm-store
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -45,3 +46,9 @@ yarn-error.log*
 
 # deploy
 .vercel
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

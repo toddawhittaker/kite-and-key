@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kite_and_key
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      target: dev
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      # Overrides any localhost value from .env — the compose service name
+      # `db` is the only reachable hostname for Postgres from inside the
+      # app container.
+      DATABASE_URI: postgres://postgres:postgres@db:5432/kite_and_key
+    volumes:
+      - .:/app
+      # Anonymous volumes so the bind mount above doesn't shadow the
+      # container's own installed deps / build output.
+      - /app/node_modules
+      - /app/.next
+    # If file-watching misbehaves in-container, uncomment:
+    # environment:
+    #   WATCHPACK_POLLING: 'true'
+    #   CHOKIDAR_USEPOLLING: 'true'
+
+  # Prod image smoke-test — kept behind a profile so `docker compose up`
+  # stays dev by default. Run with: docker compose --profile prod up
+  app-prod:
+    profiles: [prod]
+    build:
+      context: .
+      target: prod
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3001:3000'
+    env_file:
+      - .env
+    environment:
+      DATABASE_URI: postgres://postgres:postgres@db:5432/kite_and_key
+
+volumes:
+  pgdata:

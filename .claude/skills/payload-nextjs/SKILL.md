@@ -12,15 +12,17 @@ Self-hosted monorepo: Next.js (App Router) public site + Payload CMS admin, no t
 - **The admin is a product surface.** Non-technical student editors and faculty moderators use it. Every collection: sensible field order, clear labels + `admin.description` help text, previews where useful, and required/validated fields so bad content can't ship.
 - **Model for credibility.** Collections capture the specifics that make work legible, e.g. a Project has problem addressed, technologies used, student/team contributors, outcomes/artifacts — not just title + blurb. (See `kk-voice`.)
 
-## Planned shape (until scaffolded, treat as the target)
-- **Collections:** Projects, Posts (blog), Profiles (student/team), Events, PartnerOpportunities, and org updates.
-- **Public pages:** Home, About, Projects, Students, Blog, Partner With Us, Get Involved — each serving one primary audience.
-- **Access control is real:** editors/moderators have write access; enforce roles on who can create/publish/edit each collection, and never expose draft/unpublished content on the public site. Treat partner-intake and profile submissions as sensitive.
+## Real shape (scaffolded)
+- **Collections** (`src/collections/`): `Projects` (group Build), `Events` + `PartnerOpportunities` (group Engage), `Posts` + `Profiles` (group Publish), `Media` + `Users` (group System). Global: `about` (`src/globals/About.ts`).
+- **Public pages** (`src/app/(frontend)/`): Home (`/`), About (`/about`), Projects list + detail (`/projects`, `/projects/[slug]`), Students (`/students`), Blog (`/blog`), Partner With Us (`/partner`), Get Involved (`/get-involved`) — each serving one primary audience. Shared shell: `src/components/site-header.tsx`, `site-footer.tsx`, `page-container.tsx`, `entity-card.tsx`.
+- **Data access:** `src/lib/payload.ts`'s `getPayloadClient()` (Local API, no HTTP). Public pages always pass `draft: false`. Rich text renders via `@payloadcms/richtext-lexical/react`'s `RichText`.
+- **Access control:** centralized in `src/lib/access.ts` (`isAdmin`, `isAuthenticated`, `anyone`) — currently a sensible-defaults seam (auth-required writes, public reads on published content), not fully hardened. `PartnerOpportunities` has no public read (contact info + internal notes are sensitive).
+- **Slugs:** `src/fields/slug.ts`'s `slugField()` — auto-slugifies from a source field, unique + indexed.
+- **DB:** Postgres, Drizzle migrations in `src/migrations/`, `push: false` — every schema change needs `payload migrate:create <name>`.
+- **Dev stack is Docker-first** — see CLAUDE.md's Commands section (`docker compose up`, `docker compose run --rm app pnpm …`). No native host service beyond Docker.
 
 ## Engineering conventions
 - Prefer Server Components; reach for client components only for genuine interactivity.
 - Fetch CMS content through Payload's local/API layer; keep data access out of presentational components.
 - Any collection/field change ships with a Payload migration and a safe forward path — flag anything that risks existing content.
 - New config via env vars, documented; never commit secrets.
-
-When scaffolding lands, update this file with the real project layout, scripts, and commands.
