@@ -7,6 +7,11 @@ ARG UID=1000
 ARG GID=1000
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
+# Installing @playwright/test would otherwise trigger a postinstall that
+# downloads ~150MB of browsers into EVERY `pnpm install` (dev + prod), since
+# both share the `deps` stage below. Browsers are pulled only in the
+# dedicated `e2e` stage.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # The base image ships a built-in `node` user at uid/gid 1000 (the common
 # single-user-Linux-host default). Re-point it at a different UID/GID via
 # --build-arg UID=... GID=... if the host user doesn't match, then own /app
@@ -62,3 +67,17 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["docker-entrypoint.sh"]
 EXPOSE 3000
 CMD ["pnpm", "start"]
+
+# --- e2e: Playwright + Chromium, kept out of dev/prod so both stay lean ---
+FROM deps AS e2e
+ENV NODE_ENV=test
+# `playwright install --with-deps` needs root to apt-get the browser's OS-level
+# libs (`install-deps`) — split from the browser download itself (`install`,
+# no root needed) so the binary lands in the `node` user's cache, not root's,
+# and the container still runs as non-root (base's USER node) for the test run.
+USER root
+RUN pnpm exec playwright install-deps chromium
+USER node
+RUN pnpm exec playwright install chromium
+COPY --chown=node:node . .
+CMD ["pnpm", "test:e2e"]

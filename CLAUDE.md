@@ -85,11 +85,26 @@ Three cost disciplines keep this from being token-heavy:
 - **Warm-agent reuse.** The fix/re-review loop continues existing agent instances via `SendMessage` instead of cold-spawning, so they skip re-reading context. Only the *first* spawn per role pays the cold cost.
 - **Tight plan files.** A compact `docs/plans/<slug>.md` is what downstream agents read instead of re-exploring the tree — the better the plan, the cheaper everyone after it.
 
+### Testing & TDD discipline
+
+Tests are a **separation-of-duties** boundary, not a formality:
+
+- **The test-author (the `tester`) owns the tests.** In a TDD pass it writes the tests **first**, from the spec's acceptance criteria and the plan, and they start **red**.
+- **The implementer builds against those tests and never edits a test file.** If the implementer believes a test is wrong, it does **not** change it — it escalates to the PM.
+- **The PM arbitrates** against the spec/plan (the shared source of truth). If a test is genuinely wrong, **only the test-author changes it** — the invariant that the implementer never touches tests holds even when the implementer's objection is upheld. Genuine spec ambiguity goes back to the human (a spec question, not an agent decision).
+
+**When TDD applies:**
+- **Default (test-first) whenever the human surfaces a bug** — the test-author first writes a failing test that reproduces it, then the implementer makes it green. The regression test is the proof the bug is fixed and stays fixed.
+- **Logic-heavy changes** (hooks, access control, data transforms, non-trivial pure functions) — TDD by default.
+- **Exempt:** trivial copy/config/one-liner changes with no logic surface — not worth the two-role ping-pong.
+
+**Enforcement is the PM diff-gate, not a permission wall.** After every implementer turn the PM checks `git diff <base> -- '**/*.test.ts' '**/*.spec.ts' 'src/tests/**' 'e2e/**'` is empty and reverts any implementer edit to a test file. There is no per-agent path-scoped write-deny; this is a process guarantee the PM runs mechanically. (A future CI check + CODEOWNERS can harden it — part of the deferred CI/CD pass.) Tests run in-container (see Commands); e2e/behavioral verification is retained alongside unit/integration.
+
 Specialists (`.claude/agents/`), tiered by model:
 - **architect** (opus) — spec → technical plan; read-only on code, writes the plan doc.
-- **implementer** (sonnet) — executes the plan; the only role that writes code freely.
+- **implementer** (sonnet) — executes the plan; writes product code freely but **never edits test files** (escalates to the PM if it believes a test is wrong).
 - **reviewer** (opus) — correctness + cleanup; read-only.
-- **tester** (sonnet) — writes/runs tests, drives the app; leans on `verify`/`run`.
+- **tester** (sonnet) — **test-author: owns the test files**; in a TDD pass writes the failing tests first, and drives the app end-to-end; leans on `verify`/`run`.
 - **security-auditor** (opus) — authz/access-control/injection; read-only, leans on `security-review`.
 - **designer** (sonnet) — UI/UX + the editor experience; leans on `artifact-design`/`dataviz`.
 - **devops-reviewer** (sonnet) — build/CI/migrations/deploy; read-only.
@@ -114,6 +129,8 @@ docker compose run --rm app pnpm payload migrate                 # apply (entryp
 docker compose run --rm app pnpm seed                            # dev-only: first admin + sample content
 docker compose run --rm app pnpm generate:types                 # regen src/payload-types.ts
 docker compose run --rm app pnpm lint
+docker compose run --rm app pnpm test           # Vitest unit + integration (fast, no browser)
+docker compose run --rm app pnpm test:coverage  # + coverage report
 docker compose build                      # rebuild images after dependency/Dockerfile changes
 docker compose up --build -V              # after a dependency change: rebuild + renew anon volumes
                                            # (node_modules/.next), WITHOUT wiping the DB (see below)
@@ -122,6 +139,16 @@ docker compose down -v                    # stop + wipe EVERYTHING incl. the DB 
 ```
 
 **Dependency changes** (anything touching `package.json`/`pnpm-lock.yaml`): the anonymous `node_modules`/`.next` volumes persist across `docker compose up` recreations independent of image rebuilds, so they can go stale relative to a freshly rebuilt image. Use `docker compose up --build -V` to rebuild and renew just those anonymous volumes. Reserve `docker compose down -v` for genuine fresh-DB testing — it also wipes `pgdata`.
+
+**End-to-end tests (Playwright).** The `app` (dev) image deliberately has **no browser** (`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`), so `pnpm test:e2e` only runs from the dedicated `e2e` image. With the stack up + seeded, on **Linux**:
+```
+docker build --target e2e -t kite-and-key-e2e .
+docker run --rm --network host \
+  -e E2E_BASE_URL=http://localhost:3000 \
+  -e SEED_ADMIN_EMAIL="$SEED_ADMIN_EMAIL" -e SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" \
+  kite-and-key-e2e pnpm test:e2e
+```
+`--network host` is load-bearing: the browser's origin must be `localhost` — a compose service-name origin fails two ways (Chromium force-upgrades any bare `app` host to HTTPS because `.app` is HSTS-preloaded, and Next 15's `allowedDevOrigins` blocks the admin panel's `/_next/*` from non-`localhost` origins). Non-Linux contributors run it on the host instead: `pnpm exec playwright install --with-deps chromium && pnpm test:e2e`. A clean cross-platform in-container path (a compose network alias not under `.app` + an env-gated `allowedDevOrigins`) is deferred to the CI/CD pass.
 
 First run on a fresh machine: copy `.env.example` to `.env` and set `PAYLOAD_SECRET` (`openssl rand -hex 32`) and `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, then:
 ```
