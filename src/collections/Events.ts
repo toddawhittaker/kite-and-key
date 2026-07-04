@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { slugField } from '@/fields/slug'
-import { isAuthenticated } from '@/lib/access'
+import { isAuthenticated, publishedOrAuth } from '@/lib/access'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -19,7 +19,7 @@ export const Events: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuth,
     create: isAuthenticated,
     update: isAuthenticated,
     delete: isAuthenticated,

@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 
-import { isAuthenticated } from '@/lib/access'
+import { anyone, isAuthenticated } from '@/lib/access'
 
 /**
  * Singleton — lets faculty edit the About page copy without a deploy,
@@ -15,7 +15,7 @@ export const About: GlobalConfig = {
     description: 'Content for the public About page — edit without a deploy.',
   },
   access: {
-    read: () => true,
+    read: anyone,
     update: isAuthenticated,
   },
   fields: [

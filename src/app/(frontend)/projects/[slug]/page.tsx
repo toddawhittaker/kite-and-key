@@ -1,9 +1,8 @@
 import { RichText } from '@payloadcms/richtext-lexical/react'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { PageContainer } from '@/components/page-container'
-import { getPayloadClient } from '@/lib/payload'
+import { findPublic } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,10 +12,9 @@ export default async function ProjectDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({
-    collection: 'projects',
-    draft: false,
+  // findPublic() bakes in overrideAccess:false + draft:false — without it,
+  // an unpublished project could resolve by slug on this public route.
+  const { docs } = await findPublic('projects', {
     depth: 1,
     where: { slug: { equals: slug } },
     limit: 1,
@@ -64,13 +62,8 @@ export default async function ProjectDetailPage({
             <ul className="mt-2 flex flex-wrap gap-4">
               {contributors.map((contributor) =>
                 typeof contributor === 'object' ? (
-                  <li key={contributor.id}>
-                    <Link
-                      href={`/students#${contributor.slug ?? contributor.id}`}
-                      className="text-accent-700 hover:underline dark:text-accent-500"
-                    >
-                      {contributor.name}
-                    </Link>
+                  <li key={contributor.id} className="text-ink-700 dark:text-ink-300">
+                    {contributor.name}
                   </li>
                 ) : null,
               )}

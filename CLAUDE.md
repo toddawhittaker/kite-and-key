@@ -115,9 +115,13 @@ docker compose run --rm app pnpm seed                            # dev-only: fir
 docker compose run --rm app pnpm generate:types                 # regen src/payload-types.ts
 docker compose run --rm app pnpm lint
 docker compose build                      # rebuild images after dependency/Dockerfile changes
+docker compose up --build -V              # after a dependency change: rebuild + renew anon volumes
+                                           # (node_modules/.next), WITHOUT wiping the DB (see below)
 docker compose --profile prod up          # smoke-test the production image (app-prod, :3001)
-docker compose down -v                    # stop + wipe DB volume (fresh-DB test)
+docker compose down -v                    # stop + wipe EVERYTHING incl. the DB (fresh-DB test only)
 ```
+
+**Dependency changes** (anything touching `package.json`/`pnpm-lock.yaml`): the anonymous `node_modules`/`.next` volumes persist across `docker compose up` recreations independent of image rebuilds, so they can go stale relative to a freshly rebuilt image. Use `docker compose up --build -V` to rebuild and renew just those anonymous volumes. Reserve `docker compose down -v` for genuine fresh-DB testing — it also wipes `pgdata`.
 
 First run on a fresh machine: copy `.env.example` to `.env` and set `PAYLOAD_SECRET` (`openssl rand -hex 32`) and `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, then:
 ```

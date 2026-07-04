@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { slugField } from '@/fields/slug'
-import { isAuthenticated } from '@/lib/access'
+import { isAuthenticated, publishedOrAuth } from '@/lib/access'
 
 /**
  * The flagship credibility model (CLAUDE.md / kk-voice): a project isn't
@@ -24,7 +24,7 @@ export const Projects: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuth,
     create: isAuthenticated,
     update: isAuthenticated,
     delete: isAuthenticated,

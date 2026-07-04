@@ -1,14 +1,13 @@
 import { EntityCard } from '@/components/entity-card'
 import { PageContainer } from '@/components/page-container'
-import { getPayloadClient } from '@/lib/payload'
+import { findPublic } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
 
 export default async function StudentsPage() {
-  const payload = await getPayloadClient()
-  const { docs: profiles } = await payload.find({
-    collection: 'profiles',
-    draft: false,
+  // Profiles has no drafts, so overrideAccess:false is a no-op today — kept
+  // for consistency/defense-in-depth via the same findPublic() helper.
+  const { docs: profiles } = await findPublic('profiles', {
     depth: 0,
     sort: 'name',
     limit: 50,
@@ -32,7 +31,6 @@ export default async function StudentsPage() {
             {profiles.map((profile) => (
               <EntityCard
                 key={profile.id}
-                href={`/students#${profile.slug ?? profile.id}`}
                 title={profile.name}
                 meta={profile.program ?? undefined}
               />

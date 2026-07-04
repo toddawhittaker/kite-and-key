@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAuthenticated } from '@/lib/access'
+import { anyone, isAuthenticated } from '@/lib/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -15,7 +15,7 @@ export const Media: CollectionConfig = {
   },
   access: {
     // Public — images are referenced by public pages.
-    read: () => true,
+    read: anyone,
     create: isAuthenticated,
     update: isAuthenticated,
     delete: isAuthenticated,

@@ -1,14 +1,13 @@
 import { EntityCard } from '@/components/entity-card'
 import { PageContainer } from '@/components/page-container'
-import { getPayloadClient } from '@/lib/payload'
+import { findPublic } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
 
 export default async function BlogPage() {
-  const payload = await getPayloadClient()
-  const { docs: posts } = await payload.find({
-    collection: 'posts',
-    draft: false,
+  // findPublic() bakes in overrideAccess:false + draft:false — see
+  // src/lib/payload.ts for why draft:false alone isn't enough.
+  const { docs: posts } = await findPublic('posts', {
     depth: 1,
     sort: '-publishedDate',
     limit: 50,
@@ -34,7 +33,6 @@ export default async function BlogPage() {
               return (
                 <EntityCard
                   key={post.id}
-                  href={`/blog#${post.slug ?? post.id}`}
                   title={post.title}
                   meta={author}
                   excerpt={post.excerpt ?? undefined}

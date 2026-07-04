@@ -14,3 +14,14 @@ export const isAdmin: Access = ({ req: { user } }) => Boolean(user && user.role 
 export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
 
 export const anyone: Access = () => true
+
+/**
+ * For collections with `versions.drafts` enabled (Projects, Posts, Events):
+ * authenticated users can read everything (including drafts, for the admin
+ * UI); anonymous callers are restricted to published documents only. Payload's
+ * Local API defaults to published-only for logged-out requests, but the REST/
+ * GraphQL API does NOT — `?draft=true` would otherwise leak unpublished
+ * content to anonymous callers. This is the fix for that leak.
+ */
+export const publishedOrAuth: Access = ({ req: { user } }) =>
+  user ? true : { _status: { equals: 'published' } }

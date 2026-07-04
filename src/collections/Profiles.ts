@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { slugField } from '@/fields/slug'
-import { isAuthenticated } from '@/lib/access'
+import { anyone, isAuthenticated } from '@/lib/access'
 
 /**
  * Student/team profiles — themselves visible evidence (bio, links,
@@ -21,7 +21,7 @@ export const Profiles: CollectionConfig = {
     description: 'Students, team members, faculty, and alumni featured on the public site.',
   },
   access: {
-    read: () => true,
+    read: anyone,
     create: isAuthenticated,
     update: isAuthenticated,
     delete: isAuthenticated,

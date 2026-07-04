@@ -207,6 +207,31 @@ async function run() {
     console.log('Partner opportunity already exists: Sample Partner Opportunity (skipped)')
   }
 
+  // --- about global ---
+  const about = await payload.findGlobal({ slug: 'about' })
+  if (!about?.body) {
+    await payload.updateGlobal({
+      slug: 'about',
+      data: {
+        heading: 'About Kite & Key IT',
+        body: richText(
+          'PLACEHOLDER: Kite & Key IT is the public surface of applied technology work by ' +
+            "Franklin University Computing Sciences and Mathematics students, organized around " +
+            'three pillars — Build, Engage, and Publish. Replace this paragraph with real, ' +
+            'specific copy before launch.',
+        ),
+        facultyModeratorNote: richText(
+          'PLACEHOLDER: All project work shown here is scoped and reviewed under faculty ' +
+            'oversight — this is educationally-appropriate, bounded work, not open-ended ' +
+            'consulting. Replace this note with real, specific copy before launch.',
+        ),
+      },
+    })
+    console.log('Seeded about global (placeholder copy)')
+  } else {
+    console.log('About global already has content (skipped)')
+  }
+
   console.log('Seed complete.')
   process.exit(0)
 }

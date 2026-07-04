@@ -20,6 +20,14 @@ services:
     build:
       context: .
       target: dev
+      # Matches the container's non-root user to the host user so files
+      # written into the bind-mounted tree (migrations, generated types)
+      # aren't root-owned. Defaults to 1000 (the common single-user-Linux
+      # default); override via a UID/GID in your .env if your host user
+      # differs (`id -u` / `id -g`).
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     depends_on:
       db:
         condition: service_healthy
@@ -50,6 +58,9 @@ services:
     build:
       context: .
       target: prod
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     depends_on:
       db:
         condition: service_healthy
