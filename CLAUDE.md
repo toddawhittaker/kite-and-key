@@ -2,10 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status
-
-Greenfield. As of this writing the repository contains no code — only this document. The stack below is a **decided target**, not yet scaffolded. When you scaffold, update the "Commands" and "Architecture" sections to reflect reality, and remove this note.
-
 ## What this is
 
 Kite & Key IT is the public-facing platform and operating identity for a student-driven applied technology initiative connected to Franklin University's Computing Sciences and Mathematics programs. It is **not merely a marketing website** — it is the visible surface of a career-connected learning model whose deeper purpose is to help students accumulate **credible, portfolio-ready evidence of capability before graduation**.
@@ -28,21 +24,32 @@ Content and information architecture organize around three pillars. Reuse this v
 - **Current students** — a bridge from "I completed a course" to "here is a project I contributed to, the problem, the tech, what I learned, and how I communicate about it."
 - **Faculty / moderators** — the people maintaining content and providing oversight.
 
-## Target architecture
+## Architecture
 
-Monorepo: **Next.js (App Router) + Payload CMS in the same codebase**, self-hosted, no third-party CMS SaaS.
+Single combined app: **Next.js (App Router) + Payload CMS in one codebase**, self-hosted, no third-party CMS SaaS. Payload runs *inside* the Next.js app as a route group, not a separate service.
 
-- **Public site** — Next.js App Router renders the audience-facing pages from CMS content.
-- **CMS** — Payload admin (typically at `/admin`) so **non-technical student editors and faculty moderators** can publish and maintain content without touching code or git. Editor experience for these non-technical users is a first-class constraint, not an afterthought.
-- **Content is the source of truth.** Pages should be driven by CMS collections, not hardcoded. Treat the site as content-managed from day one — resist building static pages that will later need to become editable.
+- **Public site** — `src/app/(frontend)/` renders the audience-facing pages (Server Components) from CMS content via Payload's Local API (`src/lib/payload.ts`'s `getPayloadClient()`).
+- **CMS** — `src/app/(payload)/` is generator-owned (admin UI + REST/GraphQL routes) at `/admin` — treat it as read-only; don't hand-edit.
+- **Database** — PostgreSQL via `@payloadcms/db-postgres`, Drizzle migrations, `push: false` (migration-based workflow — see Commands). Migrations live in `src/migrations/`.
+- **Content is the source of truth.** Pages are driven by CMS collections (`src/collections/`) and the `about` global (`src/globals/About.ts`), not hardcoded. Data access is centralized in `src/lib/payload.ts`; public queries always pass `draft: false`.
+- **Access control** is centralized in `src/lib/access.ts` (`isAdmin`, `isAuthenticated`, `anyone`) — sensible defaults (auth-required writes, public reads on published content), not yet hardened. See the collections for the seam.
 
-### Planned content types (Payload collections)
+### Container topology
 
-Projects, Blog posts, Student/Team profiles, Events, Partner opportunities, and possibly organizational updates. Model these to capture the *specifics* that create credibility: for a project, that means the problem addressed, technologies used, student contributors, and learning outcomes / artifacts — not just a title and blurb.
+The whole dev stack runs in Docker — **both Postgres and the Next/Payload app** — via `docker compose up`. No native service runs on the host beyond Docker itself.
 
-### Planned public pages
+- **`db`** service — `postgres:16-bookworm`, named volume `pgdata`, healthcheck-gated.
+- **`app`** service — built from the repo's multi-stage `Dockerfile` (`dev` target for local work: source bind-mounted for hot reload, with anonymous volumes on `/app/node_modules` and `/app/.next` so the bind mount doesn't shadow the container's installed deps/build). Connects to Postgres over the compose network at host `db` (never `localhost` — the app service's `environment.DATABASE_URI` sets this).
+- **`docker-entrypoint.sh`** runs `pnpm payload migrate` before exec'ing the CMD, so migrations apply automatically against a fresh `pgdata` volume before the app boots (dev and prod alike).
+- **`app-prod`** service (behind `--profile prod`) builds the `prod` target — a `pnpm build` + `pnpm start` image, no Next `output: 'standalone'` (deferred; Payload's admin/importMap + standalone copy has known gotchas) — for smoke-testing the production image without disturbing the default dev `docker compose up`.
 
-Home, About, Projects, Students, Blog, Partner With Us, Get Involved. Each targets a different audience while reinforcing the same message: Franklin students do applied technical work that is visible, credible, and connected to professional communities.
+### Content types (Payload collections)
+
+`Projects` (Build), `Events` + `PartnerOpportunities` (Engage), `Posts` + `Profiles` (Publish), `Media` + `Users` (System) — grouped in the admin sidebar using the Build/Engage/Publish vocabulary. Projects/Posts/Events have `versions.drafts` enabled. See `src/collections/` for full field models (problem addressed, technologies, student contributors, outcomes/artifacts for Projects; bounded/faculty-overseen intake fields for PartnerOpportunities).
+
+### Public pages
+
+Home, About, Projects (list + detail), Students, Blog, Partner With Us (`/partner`), Get Involved (`/get-involved`) — under `src/app/(frontend)/`, sharing `src/components/site-header.tsx` + `site-footer.tsx` + `page-container.tsx`. Projects/Students/Blog query Payload's Local API and render seeded content; Home/About/Partner/Get Involved are static shells (About renders from the `about` global). Each page targets one primary audience per CLAUDE.md's audience list.
 
 ## Voice and content principles
 
@@ -97,4 +104,30 @@ Conventions that keep this working:
 
 ## Commands
 
-Not yet established — the project is unscaffolded. Populate this section (install, dev server, build, lint, test, single-test, and how to run Payload migrations / access the admin) once the Next.js + Payload project exists.
+The whole dev stack is Docker-first — Postgres and the Next/Payload app both run in containers. No native service is required on the host beyond Docker itself (host `pnpm install` is optional, for IDE type info only).
+
+```
+docker compose up                         # full stack: Postgres + app. Site :3000, admin :3000/admin
+docker compose up -d db                   # Postgres only
+docker compose run --rm app pnpm payload migrate:create <name>   # new Drizzle migration
+docker compose run --rm app pnpm payload migrate                 # apply (entrypoint also does this on boot)
+docker compose run --rm app pnpm seed                            # dev-only: first admin + sample content
+docker compose run --rm app pnpm generate:types                 # regen src/payload-types.ts
+docker compose run --rm app pnpm lint
+docker compose build                      # rebuild images after dependency/Dockerfile changes
+docker compose up --build -V              # after a dependency change: rebuild + renew anon volumes
+                                           # (node_modules/.next), WITHOUT wiping the DB (see below)
+docker compose --profile prod up          # smoke-test the production image (app-prod, :3001)
+docker compose down -v                    # stop + wipe EVERYTHING incl. the DB (fresh-DB test only)
+```
+
+**Dependency changes** (anything touching `package.json`/`pnpm-lock.yaml`): the anonymous `node_modules`/`.next` volumes persist across `docker compose up` recreations independent of image rebuilds, so they can go stale relative to a freshly rebuilt image. Use `docker compose up --build -V` to rebuild and renew just those anonymous volumes. Reserve `docker compose down -v` for genuine fresh-DB testing — it also wipes `pgdata`.
+
+First run on a fresh machine: copy `.env.example` to `.env` and set `PAYLOAD_SECRET` (`openssl rand -hex 32`) and `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, then:
+```
+docker compose up -d db
+docker compose run --rm app pnpm payload migrate:create initial   # first time only, if src/migrations/ is empty
+docker compose up -d app                                          # entrypoint applies migrations, boots app
+docker compose run --rm app pnpm seed
+```
+Then visit `http://localhost:3000` and `http://localhost:3000/admin` (log in with `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`).

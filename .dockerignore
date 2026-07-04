@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+/media
+docs
+.claude
+tests
+test-results
+playwright-report
+blob-report
+*.md
+.vscode
+.DS_Store
+npm-debug.log*
