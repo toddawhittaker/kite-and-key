@@ -1,0 +1,68 @@
+/* Kite & Key IT — Typography tokens
+   Headline serif: Noto Serif (italic used often for editorial accents).
+   Body/label sans: Inter.
+   Icons: Material Symbols Outlined (variable font — FILL/wght/GRAD/opsz axes).
+   All three are loaded from Google Fonts in every source page; no local
+   font binaries were provided, so they are pulled from the same CDN here.
+
+   NOTE (repo adaptation): the app self-hosts Inter + Noto Serif via next/font
+   instead of the CDN @import below — see docs/design/DESIGN.md. This file is
+   kept as the verbatim imported reference. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+:root {
+  --font-headline: "Noto Serif", serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+  --font-icon: "Material Symbols Outlined";
+
+  /* Type scale as used across the five pages (px) */
+  --text-display-lg: 4.5rem;   /* 72px — hero h1, lg breakpoint */
+  --text-display: 3.75rem;     /* 60px — hero h1 base */
+  --text-h1: 3rem;             /* 48px */
+  --text-h2: 2.25rem;          /* 36px */
+  --text-h3: 1.5rem;           /* 24px */
+  --text-h4: 1.25rem;          /* 20px */
+  --text-body-lg: 1.25rem;     /* 20px — lede paragraphs */
+  --text-body: 1rem;           /* 16px */
+  --text-body-sm: 0.875rem;    /* 14px */
+  --text-caption: 0.75rem;     /* 12px */
+  --text-micro: 0.625rem;      /* 10px — footer meta, tag chips */
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-relaxed: 1.65;
+
+  --tracking-tight: -0.02em;   /* .serif-tight on headlines */
+  --tracking-wide: 0.05em;
+  --tracking-widest: 0.2em;    /* uppercase eyebrow labels */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+}
+
+.material-symbols-outlined {
+  font-family: var(--font-icon);
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

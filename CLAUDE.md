@@ -59,6 +59,10 @@ These are product requirements, not style preferences — credibility depends on
 - **Professional but not inflated.** It must not read like a generic startup, a university brochure, or a student club page with nicer graphics. Aim for: serious applied-learning platform — student-centered, employer-aware, community-facing, grounded in real work.
 - **"Bounded" is load-bearing** for partner-facing copy and intake. Scoped, faculty-overseen, realistic expectations — never open-ended consulting.
 
+## Design system
+
+`docs/design/DESIGN.md` is the authoritative in-repo reference for visual/brand decisions — read it before styling anything. Single light editorial theme (no dark mode). Tokens live in `src/app/(frontend)/globals.css`'s Tailwind v4 `@theme` block (the only token source — there is no `tailwind.config.ts`). Inter (body), Noto Serif (headings/eyebrows), and Material Symbols Outlined (icons) are all self-hosted via `next/font`. `docs/design/reference/` is the imported design-system source material (one-way import; treat as reference, not buildable code).
+
 ## Agentic workflow
 
 Development runs through a PM-orchestrated pipeline. **You talk only to the root session**, which acts as Product Manager; the specialists are subagents it dispatches (cold context each) and whose results it synthesizes.

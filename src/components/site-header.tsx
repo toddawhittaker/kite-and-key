@@ -1,8 +1,10 @@
 import Link from 'next/link'
 
+import { Crest } from '@/components/crest'
+import { MobileNav } from '@/components/mobile-nav'
 import { PageContainer } from '@/components/page-container'
 
-const NAV_LINKS = [
+export const NAV_LINKS = [
   { href: '/about', label: 'About' },
   { href: '/projects', label: 'Projects' },
   { href: '/students', label: 'Students' },
@@ -11,25 +13,33 @@ const NAV_LINKS = [
   { href: '/get-involved', label: 'Get Involved' },
 ]
 
+/**
+ * Fixed glass top nav (docs/design/reference/readme.md: "the top nav is the
+ * only translucent surface"). Stays a Server Component — MobileNav is the
+ * only client island, handling the below-`md` disclosure.
+ */
 export function SiteHeader() {
   return (
-    <header className="border-b border-ink-100 dark:border-ink-900">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-hairline/10 bg-surface-page/80 backdrop-blur-lg">
       <PageContainer>
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Kite &amp; Key IT
+        <div className="flex h-24 items-center justify-between">
+          <Link href="/" className="shrink-0">
+            <Crest size={36} />
           </Link>
-          <nav className="flex items-center gap-6 text-sm">
+
+          <nav className="hidden items-center gap-8 text-sm font-bold md:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-ink-700 hover:text-accent-700 dark:text-ink-300 dark:hover:text-accent-500"
+                className="text-brand-ink transition-colors hover:text-brand-gold"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
+
+          <MobileNav links={NAV_LINKS} />
         </div>
       </PageContainer>
     </header>

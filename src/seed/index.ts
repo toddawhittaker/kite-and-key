@@ -165,6 +165,11 @@ async function run() {
     limit: 1,
   })
   if (existingEvent.docs.length === 0) {
+    // Future offset (not `new Date()`): Get Involved's "upcoming events"
+    // query filters on `startDate >= now` at request time, which is always
+    // strictly after seed time — a same-instant timestamp would already be
+    // in the past by the time any page requests it (see e2e/get-involved.spec.ts).
+    const upcomingEventStartDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     await payload.create({
       collection: 'events',
       data: {
@@ -172,7 +177,7 @@ async function run() {
         title: 'Sample Event — Code Review Session',
         eventType: 'code-review',
         description: richText('Placeholder description for a sample event.'),
-        startDate: new Date().toISOString(),
+        startDate: upcomingEventStartDate.toISOString(),
         _status: 'published' as const,
       },
       draft: false,

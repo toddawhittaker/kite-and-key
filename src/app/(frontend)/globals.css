@@ -1,6 +1,136 @@
 @import 'tailwindcss';
-@config '../../../tailwind.config.ts';
 
-body {
-  @apply bg-ink-50 text-ink-900 antialiased dark:bg-ink-950 dark:text-ink-100;
+/*
+ * Kite & Key IT design tokens — Tailwind v4 CSS-first `@theme`.
+ * Source of truth: docs/design/reference/tokens/*.css (imported verbatim),
+ * mapped 1:1 here per docs/plans/design-system-restyle.md §3. This is the
+ * ONLY token source — there is no tailwind.config.ts (deleted; the JS config
+ * previously here has been fully replaced, not extended).
+ *
+ * Naming: bespoke names (`brand-*`/`surface-*`/`status-*` colors, the single
+ * `shadow-card` elevation, `font-display`) are reserved for values with no
+ * stock Tailwind equivalent. Everywhere else we rely on Tailwind's own stock
+ * utilities (`rounded-lg`, `text-5xl`, `font-sans`) so the system rides on
+ * familiar names instead of a shadow vocabulary. See docs/design/DESIGN.md.
+ */
+@theme {
+  /* Brand */
+  --color-brand-ink: #041627;
+  --color-brand-navy-panel: #1a2b3c;
+  --color-brand-gold: #fbbc00;
+  --color-brand-gold-ink: #261a00;
+  --color-brand-gold-hover: #b88900;
+
+  /* Surfaces */
+  --color-surface-page: #fcf9f8;
+  --color-surface-card: #ffffff;
+  --color-surface-card-tint: #f6f3f2;
+  --color-surface-sunken: #f6f3f2;
+  --color-surface-sunken-strong: #eae7e7;
+
+  /* Text */
+  --color-body: #44474c;
+  --color-body-strong: #1b1c1c;
+  --color-muted: #5f5e5e;
+  --color-inverse: #fcf9f8;
+  --color-inverse-muted: #9ca3af;
+
+  /* Borders */
+  --color-hairline: #c4c6cd;
+
+  /* Status (Badge-internal only — never exposed as ad-hoc utility combos) */
+  --color-status-success-bg: #dcfce7;
+  --color-status-success-text: #166534;
+  --color-status-info-bg: #dbeafe;
+  --color-status-info-text: #1e40af;
+  --color-status-pending-bg: #fef3c7;
+  --color-status-pending-text: #92400e;
+
+  /* Radius — self-documenting; these already equal Tailwind's own sm/lg/xl */
+  --radius-sm: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* Shadow: one deliberate elevation system, hover-only */
+  --shadow-card: 0 32px 64px -12px rgba(4, 22, 39, 0.08);
+  --shadow-card-soft: 0 32px 64px -12px rgba(4, 22, 39, 0.04);
+  --shadow-pop: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Fonts — next/font CSS vars wired in layout.tsx. `--font-material-symbols`
+     is applied directly on <html> by next/font/local and read as-is by
+     `.material-symbols-outlined` below; it generates no Tailwind utility, so
+     it isn't (and can't be, circularly) redeclared here. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-noto-serif), ui-serif, Georgia, serif;
+
+  /* Headline tracking */
+  --tracking-tight: -0.02em;
 }
+
+/* Eyebrow label: small, bold, uppercase, widely-tracked — the small pill/inline
+   label above hero headlines and section headers. */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 1;
+}
+
+/* Inline serif-italic emphasis inside otherwise-roman headlines. */
+@utility type-emphasis {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  body {
+    @apply bg-surface-page text-body antialiased;
+  }
+}
+
+/* Material Symbols Outlined — self-hosted variable font (§0.2 of the plan).
+   FILL 0->1 drives the outline<->filled hover interaction; wght/GRAD/opsz
+   stay at their defaults everywhere except where a component overrides them. */
+.material-symbols-outlined {
+  font-family: var(--font-material-symbols);
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* StepItem's oversized "ghost numeral": generated (::before) content, not a
+   real text node, so the decorative low-contrast numeral (by design, per
+   docs/design/reference/readme.md) never has literal DOM text for an a11y
+   contrast checker to flag — content on a pseudo-element isn't scanned the
+   way real text nodes are. `aria-hidden` on the host span covers screen
+   readers; this covers the axe color-contrast smoke (e2e/a11y.spec.ts). */
+.ghost-numeral::before {
+  content: attr(data-number);
+}
+
