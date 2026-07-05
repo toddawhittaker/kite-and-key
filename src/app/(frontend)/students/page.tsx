@@ -3,7 +3,7 @@ import { PageContainer } from '@/components/page-container'
 import { Select } from '@/components/select'
 import { StudentCard } from '@/components/student-card'
 import { StudentsView } from '@/components/students-view'
-import { mediaImage, profileTypeLabel, type ProfileType } from '@/lib/display'
+import { mediaImage, outcomeTypeLabel, profileTypeLabel, type ProfileType } from '@/lib/display'
 import { findPublic } from '@/lib/payload'
 import { richTextToPlainText } from '@/lib/richtext'
 
@@ -112,6 +112,14 @@ export default async function StudentsPage({
                 description={richTextToPlainText(profile.bio)}
                 avatar={mediaImage(profile.avatar)}
                 tag={profileTypeLabel(profile.profileType)}
+                outcome={
+                  profile.outcome?.type
+                    ? {
+                        label: outcomeTypeLabel(profile.outcome.type),
+                        detail: profile.outcome.detail ?? undefined,
+                      }
+                    : undefined
+                }
               />
             ))}
           </StudentsView>

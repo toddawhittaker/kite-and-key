@@ -13,6 +13,7 @@ export function StudentCard({
   description,
   avatar,
   tag,
+  outcome,
   href,
 }: {
   name: string
@@ -21,6 +22,7 @@ export function StudentCard({
   description?: string
   avatar?: { url: string; alt?: string }
   tag?: string
+  outcome?: { label: string; detail?: string }
   href?: string
 }) {
   const meta = [program, year].filter(Boolean).join(' · ')
@@ -47,6 +49,14 @@ export function StudentCard({
       )}
       <h3 className="mt-3 text-lg font-bold text-brand-ink">{name}</h3>
       {meta && <p className="mt-1 text-sm text-muted">{meta}</p>}
+      {outcome && (
+        <div className="mt-3">
+          <span className="inline-block rounded-full bg-brand-gold px-3 py-1 text-xs font-bold tracking-widest text-brand-gold-ink uppercase">
+            {outcome.label.toUpperCase()}
+          </span>
+          {outcome.detail && <p className="mt-2 text-sm text-body">{outcome.detail}</p>}
+        </div>
+      )}
       {description && (
         <p className="mt-3 text-sm leading-relaxed text-body">{description}</p>
       )}

@@ -240,6 +240,21 @@ export interface Profile {
   program?: string | null;
   gradYear?: number | null;
   /**
+   * Where this student's work led. Optional — leave the type blank to show no outcome.
+   */
+  outcome?: {
+    /**
+     * Shown as a prominent pill on the student card.
+     */
+    type?:
+      | ('internship' | 'co-op' | 'new-position' | 'full-time-offer' | 'promotion' | 'research-role' | 'grad-school')
+      | null;
+    /**
+     * Optional specifics, e.g. "SWE Intern, Nationwide". Factual and concrete — see kk-voice.
+     */
+    detail?: string | null;
+  };
+  /**
    * Two or three sentences in your own voice. Specific interests and what you've worked on read better than general career-goal statements.
    */
   bio?: {
@@ -701,6 +716,12 @@ export interface ProfilesSelect<T extends boolean = true> {
   profileType?: T;
   program?: T;
   gradYear?: T;
+  outcome?:
+    | T
+    | {
+        type?: T;
+        detail?: T;
+      };
   bio?: T;
   avatar?: T;
   links?:
