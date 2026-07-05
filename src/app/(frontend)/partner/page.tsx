@@ -120,10 +120,10 @@ export default async function PartnerPage() {
               </div>
             </div>
             <div className="grid gap-6 sm:grid-cols-2">
-              <StatTile value={String(stats.projects)} label="Projects Delivered" tone="navy" />
+              <StatTile value={String(stats.projects)} label="Published Projects" tone="navy" />
               <StatTile
                 value={String(stats.profiles)}
-                label="Student Contributors"
+                label="Profiles on Site"
                 tone="gold"
               />
             </div>

@@ -55,7 +55,7 @@ export function MobileNav({ links }: { links: { href: string; label: string }[] 
       </button>
 
       {open && (
-        <nav className="absolute inset-x-0 top-full flex flex-col gap-1 border-b border-hairline/10 bg-surface-page/95 px-6 py-4 shadow-card-soft backdrop-blur-lg">
+        <nav className="absolute inset-x-0 top-full flex flex-col gap-1 border-b border-hairline/10 bg-surface-page px-6 py-4 shadow-card-soft backdrop-blur-lg">
           {links.map((link) => (
             <Link
               key={link.href}

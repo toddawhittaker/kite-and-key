@@ -22,12 +22,15 @@ export default async function StudentsPage({
   const type = typeof params.type === 'string' ? params.type : undefined
 
   // Profiles has no drafts, so overrideAccess:false is a no-op today — kept
-  // for consistency/defense-in-depth via the same findPublic() helper. The
-  // program/year/type filters are additive `where` clauses (plan §5).
+  // for consistency/defense-in-depth via the same findPublic() helper.
+  // Filter options + results are computed in-memory from a single fetch
+  // (plan §5 describes a `where`-based approach; this is the simpler v1
+  // path). `limit: 500` is an intentional headroom cap, not a silent one —
+  // revisit with a `where`-based filter + pagination if the roster outgrows it.
   const { docs: allProfiles } = await findPublic('profiles', {
     depth: 0,
     sort: 'name',
-    limit: 100,
+    limit: 500,
   })
 
   const programOptions = Array.from(

@@ -91,9 +91,9 @@ export default async function AboutPage() {
 
       <section className="border-t border-hairline/20 py-16 text-center">
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-6">
-          <div className="flex items-center gap-4 opacity-40">
-            <Icon name="account_balance" size={32} className="text-brand-ink" />
-            <span className="font-display text-2xl font-bold tracking-tight text-brand-ink">
+          <div className="flex items-center gap-4">
+            <Icon name="account_balance" size={32} className="text-muted" />
+            <span className="font-display text-2xl font-bold tracking-tight text-muted">
               Franklin University
             </span>
           </div>

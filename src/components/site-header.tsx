@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { Crest } from '@/components/crest'
 import { MobileNav } from '@/components/mobile-nav'
+import { NavLink } from '@/components/nav-link'
 import { PageContainer } from '@/components/page-container'
 
 export const NAV_LINKS = [
@@ -29,13 +30,7 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-8 text-sm font-bold md:flex">
             {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-brand-ink transition-colors hover:text-brand-gold"
-              >
-                {link.label}
-              </Link>
+              <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
           </nav>
 

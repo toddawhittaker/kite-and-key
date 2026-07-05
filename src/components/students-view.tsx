@@ -25,7 +25,7 @@ export function StudentsView({ children }: { children: ReactNode }) {
       <div
         className={
           view === 'grid'
-            ? 'mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3'
+            ? 'mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3'
             : 'mt-8 flex max-w-2xl flex-col gap-4'
         }
       >

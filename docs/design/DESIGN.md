@@ -52,8 +52,8 @@ that's the one place status hues are allowed to appear.
 | shadow-card | `shadow-card`, `hover:shadow-card` | `0 32px 64px -12px rgba(4,22,39,.08)` |
 | shadow-card-soft | `shadow-card-soft` | `…/.04` |
 | shadow-pop | `shadow-pop` | `0 25px 50px -12px rgba(0,0,0,.25)` (IconTile `active`) |
-| headline font | `font-display` | Noto Serif (self-hosted, `next/font/google`) |
-| body font | ambient (Preflight `font-sans`) | Inter (self-hosted, `next/font/google`) |
+| headline font | `font-display` | Noto Serif (self-hosted, `next/font/local`, committed woff2) |
+| body font | ambient (Preflight `font-sans`) | Inter (self-hosted, `next/font/local`, committed woff2) |
 | icon font | `.material-symbols-outlined` | Material Symbols Outlined (self-hosted, `next/font/local`, committed woff2) |
 | headline tracking | `tracking-tight` (applied on h1–h4 in base layer) | `-0.02em` |
 

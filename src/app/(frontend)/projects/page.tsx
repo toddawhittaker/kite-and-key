@@ -59,7 +59,7 @@ export default async function ProjectsPage({
         {projects.length === 0 ? (
           <p className="mt-12 text-muted">Projects are being added — check back soon.</p>
         ) : (
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => {
               const technologies = (project.technologies ?? [])
                 .map((t) => t.name)

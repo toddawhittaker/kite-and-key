@@ -9,13 +9,16 @@ import Image from 'next/image'
 // never a broken <img>.
 const CREST_PATH = path.join(process.cwd(), 'public', 'kite-key-crest.png')
 
-function crestExists(): boolean {
+// Computed once at module load, not per-render — this component renders
+// twice per page (header + footer), and the file never appears/disappears
+// during a running process, so a per-request fs.existsSync() is wasted work.
+const CREST_EXISTS = (() => {
   try {
     return fs.existsSync(CREST_PATH)
   } catch {
     return false
   }
-}
+})()
 
 export function Crest({
   tone = 'light',
@@ -24,7 +27,7 @@ export function Crest({
   tone?: 'light' | 'dark'
   size?: number
 }) {
-  if (crestExists()) {
+  if (CREST_EXISTS) {
     return (
       <Image
         src="/kite-key-crest.png"

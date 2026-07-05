@@ -1,26 +1,27 @@
 import localFont from 'next/font/local'
-import { Inter, Noto_Serif } from 'next/font/google'
 import React from 'react'
 
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import './globals.css'
 
-// next/font/google self-hosts at build time (no runtime Google Fonts CDN
-// call) and auto-generates fallback size-adjust metrics, which is what
-// actually prevents layout shift (not just `display: swap`). See
-// docs/plans/design-system-restyle.md §0.3.
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+// Inter/Noto Serif — self-hosted from committed woff2 (fix batch #8), same
+// mechanism as Material Symbols below: no network call at build (unlike
+// next/font/google, which fetches from Google at `next build` — see
+// docs/plans/design-system-restyle.md §0.3/R-BUILD). Both files are
+// variable fonts (wght axis) subsetted to latin only, so one file per
+// style covers the full 400-700 weight range we use.
+const inter = localFont({
+  src: [{ path: './fonts/Inter.woff2', weight: '400 700', style: 'normal' }],
   variable: '--font-inter',
   display: 'swap',
 })
 
-const notoSerif = Noto_Serif({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  style: ['normal', 'italic'],
+const notoSerif = localFont({
+  src: [
+    { path: './fonts/NotoSerif.woff2', weight: '400 700', style: 'normal' },
+    { path: './fonts/NotoSerifItalic.woff2', weight: '400 700', style: 'italic' },
+  ],
   variable: '--font-noto-serif',
   display: 'swap',
 })

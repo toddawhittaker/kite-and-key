@@ -69,8 +69,8 @@ export default async function HomePage() {
       </section>
 
       <section className="grid gap-6 py-16 sm:grid-cols-3">
-        <StatTile value={String(stats.projects)} label="Projects" tone="navy" />
-        <StatTile value={String(stats.profiles)} label="Student Profiles" tone="gold" />
+        <StatTile value={String(stats.projects)} label="Published Projects" tone="navy" />
+        <StatTile value={String(stats.profiles)} label="Profiles on Site" tone="gold" />
         <StatTile value={String(stats.posts)} label="Posts Published" tone="navy" />
       </section>
 
