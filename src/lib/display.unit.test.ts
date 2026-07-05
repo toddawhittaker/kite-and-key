@@ -4,6 +4,7 @@ import {
   eventTypeToIcon,
   humanizePillar,
   mediaImage,
+  outcomeTypeLabel,
   pillarToIcon,
   profileTypeLabel,
 } from './display'
@@ -63,6 +64,22 @@ describe('profileTypeLabel', () => {
     expect(profileTypeLabel('team')).toBe('Team')
     expect(profileTypeLabel('faculty')).toBe('Faculty')
     expect(profileTypeLabel('alum')).toBe('Alum')
+  })
+})
+
+// docs/plans/brand-lockup-and-outcomes.md §5: Profiles.outcome.type -> pill
+// label for the /students outcome pill. `outcomeTypeLabel` doesn't exist yet
+// (src/lib/display.ts) — this describe block is red until the implementer
+// adds the export per the plan's exact mapping table.
+describe('outcomeTypeLabel', () => {
+  it('maps each real Profiles.outcome.type value to its display label', () => {
+    expect(outcomeTypeLabel('internship')).toBe('Internship')
+    expect(outcomeTypeLabel('co-op')).toBe('Co-op')
+    expect(outcomeTypeLabel('new-position')).toBe('New Position')
+    expect(outcomeTypeLabel('full-time-offer')).toBe('Full-time Offer')
+    expect(outcomeTypeLabel('promotion')).toBe('Promotion')
+    expect(outcomeTypeLabel('research-role')).toBe('Research Role')
+    expect(outcomeTypeLabel('grad-school')).toBe('Grad School')
   })
 })
 
