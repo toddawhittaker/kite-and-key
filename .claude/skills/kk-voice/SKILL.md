@@ -28,3 +28,9 @@ Franklin University students are doing applied technical work that is **visible,
 1. Could this exact sentence sit on a generic university page? If yes, make it specific or cut it.
 2. Does partner-facing text keep the work bounded and faculty-overseen?
 3. Is there a concrete artifact or story nearby, or just a claim?
+
+## Design system reconciliation
+
+The imported design system (`docs/design/reference/`) contributes **tone mechanics** on top of these rules, additively: eyebrow labels (small, bold, uppercase, widely tracked), serif-italic emphasis on a headline word or phrase (`type-emphasis`), metaphor-forward headlines, concrete/specific numbers, a warm-professional register, and Material Symbols glyphs instead of emoji (this repo already forbids emoji).
+
+**Unchanged and authoritative where the two disagree:** partner-facing copy stays **bounded / faculty-overseen** (never "consultancy" or unrestricted engagement, regardless of how the reference `readme.md`/screens phrase it), and **no fabrication** — stat tiles render real CMS-derived counts (`src/lib/stats.ts`) or are omitted, never invented sample numbers like the reference's "50+ Projects Shipped." Do not copy the reference screens' sample copy verbatim; render real CMS content through the tone mechanics above.

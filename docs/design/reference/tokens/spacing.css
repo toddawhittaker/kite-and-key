@@ -1,0 +1,41 @@
+/* Kite & Key IT — Spacing, radius, shadow, motion tokens
+   Derived from the Tailwind spacing/radius scale used consistently across
+   all five source pages (px-8 section gutters, max-w-7xl content well,
+   rounded/rounded-lg/rounded-xl/rounded-full corner scale, etc). */
+
+:root {
+  /* Spacing scale (Tailwind-equivalent px values actually used in source) */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+  --space-20: 5rem;    /* 80px */
+  --space-24: 6rem;    /* 96px */
+
+  --content-max: 80rem;   /* max-w-7xl, 1280px page well */
+  --content-max-narrow: 56rem; /* max-w-4xl, partner form / franklin block */
+  --gutter: var(--space-8);    /* px-8 side padding on every page */
+
+  /* Corner radii — DEFAULT/lg/xl/full exactly as configured in Tailwind */
+  --radius-sm: 0.25rem;  /* DEFAULT — buttons, inputs, tags */
+  --radius-md: 0.5rem;   /* lg — cards, panels */
+  --radius-lg: 0.75rem;  /* xl — hero image frames, feature panels */
+  --radius-full: 9999px; /* pill buttons, avatar/icon circles, badges */
+
+  /* Shadow: a single soft "editorial" elevation, warm-black tinted */
+  --shadow-card: 0 32px 64px -12px rgba(4, 22, 39, 0.08);
+  --shadow-card-soft: 0 32px 64px -12px rgba(4, 22, 39, 0.04);
+  --shadow-pop: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Motion: short, linear-ish ease, used for color/transform hovers only —
+     no bounce, no springy easing anywhere in source */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --duration-fast: 200ms; /* @kind other */
+  --duration-base: 300ms; /* @kind other */
+  --duration-slow: 500ms; /* @kind other */
+}

@@ -1,0 +1,92 @@
+/* Kite & Key IT — Color tokens
+   Source: Material Design 3 color-role system, extracted verbatim from the
+   Tailwind config embedded in uploads/about.html, blog.html, partner.html,
+   projects.html, students.html. All five pages share this exact palette. */
+
+:root {
+  /* ---- Base M3 roles (do not use directly in product code) ---- */
+  --primary: #041627;
+  --on-primary: #ffffff;
+  --primary-container: #1a2b3c;
+  --on-primary-container: #8192a7;
+  --primary-fixed: #d2e4fb;
+  --primary-fixed-dim: #b7c8de;
+  --on-primary-fixed: #0b1d2d;
+  --on-primary-fixed-variant: #38485a;
+
+  --secondary: #5f5e5e;
+  --on-secondary: #ffffff;
+  --secondary-container: #e4e2e1;
+  --on-secondary-container: #656464;
+  --secondary-fixed: #e4e2e1;
+  --secondary-fixed-dim: #c8c6c6;
+  --on-secondary-fixed: #1b1c1c;
+  --on-secondary-fixed-variant: #474747;
+
+  --tertiary: #1e1300;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #372700;
+  --on-tertiary-container: #b88900;
+  --tertiary-fixed: #ffdfa0;
+  --tertiary-fixed-dim: #fbbc00;
+  --on-tertiary-fixed: #261a00;
+  --on-tertiary-fixed-variant: #5c4300;
+
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+
+  --surface: #fcf9f8;
+  --on-surface: #1b1c1c;
+  --surface-variant: #e4e2e1;
+  --on-surface-variant: #44474c;
+  --surface-dim: #dcd9d9;
+  --surface-bright: #fcf9f8;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f6f3f2;
+  --surface-container: #f0eded;
+  --surface-container-high: #eae7e7;
+  --surface-container-highest: #e4e2e1;
+
+  --background: #fcf9f8;
+  --on-background: #1b1c1c;
+
+  --outline: #74777d;
+  --outline-variant: #c4c6cd;
+
+  --inverse-surface: #303030;
+  --inverse-on-surface: #f3f0f0;
+  --inverse-primary: #b7c8de;
+  --surface-tint: #4f6073;
+
+  /* ---- Semantic aliases — use these in components ---- */
+  --brand-ink: var(--primary);                 /* near-black navy: wordmark, headline text, dark sections */
+  --brand-navy-panel: var(--primary-container); /* deep navy panel/footer background */
+  --brand-gold: var(--tertiary-fixed-dim);      /* #fbbc00 — the one accent color: CTAs, active states, underlines */
+  --brand-gold-ink: var(--on-tertiary-fixed);   /* text/icon color sitting on brand-gold */
+  --brand-gold-hover: #b88900;                  /* on-tertiary-container, used as gold's hover-darken */
+
+  --surface-page: var(--surface);               /* warm off-white page background */
+  --surface-card: var(--surface-container-lowest);
+  --surface-card-tint: var(--surface-container-low);
+  --surface-sunken: var(--surface-container-low);
+  --surface-sunken-strong: var(--surface-container-high);
+
+  --text-heading: var(--primary);
+  --text-body: var(--on-surface-variant);
+  --text-body-strong: var(--on-surface);
+  --text-muted: var(--secondary);
+  --text-inverse: var(--surface);
+  --text-inverse-muted: #9ca3af; /* footer gray-400 */
+
+  --border-hairline: var(--outline-variant);
+  --border-hairline-soft: rgb(from var(--outline-variant) r g b / 0.1);
+
+  --status-success-bg: #dcfce7;   /* green-100, project status pill */
+  --status-success-text: #166534; /* green-800 */
+  --status-info-bg: #dbeafe;      /* blue-100 */
+  --status-info-text: #1e40af;    /* blue-800 */
+  --status-pending-bg: #fef3c7;   /* amber-100 */
+  --status-pending-text: #92400e; /* amber-800 */
+}

@@ -27,7 +27,17 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['.next/', 'src/payload-types.ts', 'src/payload-generated-schema.ts'],
+    // `docs/design/reference/` is imported reference material (design-system
+    // restyle source docs, not buildable product code — see
+    // docs/plans/design-system-restyle.md); `coverage/` is generated,
+    // gitignored test output. Neither should be linted as our TS/React code.
+    ignores: [
+      '.next/',
+      'coverage/',
+      'docs/design/reference/',
+      'src/payload-types.ts',
+      'src/payload-generated-schema.ts',
+    ],
   },
 ]
 

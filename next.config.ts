@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
       {
         pathname: '/api/media/file/**',
       },
+      {
+        // Static brand crest in public/ (site header + footer)
+        pathname: '/kite-key-crest.png',
+      },
     ],
   },
   webpack: (webpackConfig) => {
