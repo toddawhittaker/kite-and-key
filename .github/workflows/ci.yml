@@ -52,14 +52,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Align workspace ownership with container user (uid 1000)
-        # The runner checks out $GITHUB_WORKSPACE as its own user (uid 1001),
-        # but the `app`/`e2e` containers run as the non-root `node` user
-        # (uid 1000, baked into the Dockerfile). Without this, writes into
-        # the `.:/app` bind mount (coverage/, next-env.d.ts, .next) fail
-        # with EACCES. Matches the image's baked-in uid-1000 ownership —
-        # no image rebuild needed.
-        run: sudo chown -R 1000:1000 .
+      - name: Capture runner uid/gid for image build
+        # The runner checks out $GITHUB_WORKSPACE as its own user (uid 1001
+        # on GitHub-hosted ubuntu runners), and the `app` container writes
+        # into the `.:/app` bind mount (coverage/, next-env.d.ts, .next).
+        # Building the image with UID/GID = the runner's own uid/gid (the
+        # Dockerfile's `base` stage re-points its `node` user accordingly)
+        # makes both sides agree on ownership — no chown needed, and the
+        # runner keeps write access to `.env` / `.git` for later steps.
+        run: |
+          echo "HOST_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "HOST_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -70,6 +73,9 @@ jobs:
           target: dev
           tags: kite-and-key:dev
           load: true
+          build-args: |
+            UID=${{ env.HOST_UID }}
+            GID=${{ env.HOST_GID }}
           cache-from: type=gha,scope=dev
           cache-to: type=gha,mode=max,scope=dev
 
@@ -97,9 +103,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Align workspace ownership with container user (uid 1000)
+      - name: Capture runner uid/gid for image build
         # See the `test` job's identical step for why.
-        run: sudo chown -R 1000:1000 .
+        run: |
+          echo "HOST_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "HOST_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -110,6 +118,9 @@ jobs:
           target: dev
           tags: kite-and-key:dev
           load: true
+          build-args: |
+            UID=${{ env.HOST_UID }}
+            GID=${{ env.HOST_GID }}
           cache-from: type=gha,scope=dev
           cache-to: type=gha,mode=max,scope=dev
 
@@ -120,6 +131,9 @@ jobs:
           target: e2e
           tags: kite-and-key:e2e
           load: true
+          build-args: |
+            UID=${{ env.HOST_UID }}
+            GID=${{ env.HOST_GID }}
           cache-from: type=gha,scope=e2e
           cache-to: type=gha,mode=max,scope=e2e
 
