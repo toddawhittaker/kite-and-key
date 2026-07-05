@@ -1,0 +1,221 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Never cancel a push:main run mid-flight — that's the publish path.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # Pure-static checks: no DB, no Docker — fast, one `pnpm install`.
+  static:
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values: typecheck/generate:types build the sanitized Payload
+      # config but never open a DB connection or need a real JWT secret.
+      PAYLOAD_SECRET: ci-dummy-secret-not-used-for-anything-real
+      DATABASE_URI: postgres://postgres:postgres@localhost:5432/unused
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: lint
+        run: pnpm lint
+
+      - name: typecheck
+        run: pnpm typecheck
+
+      - name: generated-types drift
+        run: pnpm generate:types && git diff --exit-code src/payload-types.ts
+
+  # Unit + integration tests against a real Postgres — via docker compose,
+  # reusing the exact dockerized dev/test harness (src/tests/helpers/db.ts,
+  # migrate-before-boot) so there's no divergence between local and CI.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture runner uid/gid for image build
+        # The runner checks out $GITHUB_WORKSPACE as its own user (uid 1001
+        # on GitHub-hosted ubuntu runners), and the `app` container writes
+        # into the `.:/app` bind mount (coverage/, next-env.d.ts, .next).
+        # Building the image with UID/GID = the runner's own uid/gid (the
+        # Dockerfile's `base` stage re-points its `node` user accordingly)
+        # makes both sides agree on ownership — no chown needed, and the
+        # runner keeps write access to `.env` / `.git` for later steps.
+        run: |
+          echo "HOST_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "HOST_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: build dev image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: dev
+          tags: kite-and-key:dev
+          load: true
+          build-args: |
+            UID=${{ env.HOST_UID }}
+            GID=${{ env.HOST_GID }}
+          cache-from: type=gha,scope=dev
+          cache-to: type=gha,mode=max,scope=dev
+
+      - name: write CI .env
+        run: |
+          cat >> .env <<EOF
+          PAYLOAD_SECRET=ci-dummy-secret-not-used-for-anything-real
+          SEED_ADMIN_EMAIL=ci-dummy@example.edu
+          SEED_ADMIN_PASSWORD=ci-dummy-password-not-used
+          NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+          EOF
+
+      - name: start db
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --wait db
+
+      - name: unit + integration tests (with coverage)
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm app pnpm test:coverage
+
+  # Playwright e2e — own job so a flake is diagnosable in isolation and its
+  # heavier runtime doesn't serialize behind `test`. Drives the `app`
+  # container at the `webapp` compose-network alias (docker-compose.yml) —
+  # no `--network host`, so this is the CI-and-local invocation alike.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture runner uid/gid for image build
+        # See the `test` job's identical step for why.
+        run: |
+          echo "HOST_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "HOST_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: build dev image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: dev
+          tags: kite-and-key:dev
+          load: true
+          build-args: |
+            UID=${{ env.HOST_UID }}
+            GID=${{ env.HOST_GID }}
+          cache-from: type=gha,scope=dev
+          cache-to: type=gha,mode=max,scope=dev
+
+      - name: build e2e image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: e2e
+          tags: kite-and-key:e2e
+          load: true
+          build-args: |
+            UID=${{ env.HOST_UID }}
+            GID=${{ env.HOST_GID }}
+          cache-from: type=gha,scope=e2e
+          cache-to: type=gha,mode=max,scope=e2e
+
+      - name: write CI .env
+        # Real creds: admin.spec.ts `test.skip`s without them, which would
+        # silently pass — these must be set so the login spec actually runs.
+        run: |
+          cat >> .env <<EOF
+          PAYLOAD_SECRET=${{ secrets.PAYLOAD_SECRET }}
+          SEED_ADMIN_EMAIL=${{ secrets.SEED_ADMIN_EMAIL }}
+          SEED_ADMIN_PASSWORD=${{ secrets.SEED_ADMIN_PASSWORD }}
+          NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+          EOF
+
+      - name: start stack
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml --profile e2e up -d --wait db app
+
+      - name: seed
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm app pnpm seed
+
+      - name: Warm the /admin route (Next dev compiles it on first request)
+        # `next dev` compiles a route on first hit; the heavier `/admin`
+        # (Payload admin) bundle can take longer than Playwright's action
+        # timeout on a slower CI runner. Compiling it here, outside the
+        # timed test, is what playwright.config.ts's CI-only timeout bump
+        # is paired with. Fails fast + clearly if it never compiles.
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T app \
+            node -e "const u='http://localhost:3000/admin';(async()=>{const s=Date.now();while(Date.now()-s<180000){try{const r=await fetch(u);if(r.ok){console.log('admin compiled in',Date.now()-s,'ms');process.exit(0)}}catch{}await new Promise(r=>setTimeout(r,2000))}console.error('admin never compiled');process.exit(1)})()"
+
+      - name: run e2e
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm e2e pnpm test:e2e
+
+      - name: dump app logs
+        if: failure()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml logs --no-color app
+
+      - name: upload playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # Production image: build-only validation on PRs, push to GHCR on
+  # push:main. Gated on the three checks above so a broken build/test/e2e
+  # never gets published.
+  image:
+    needs: [static, test, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: derive image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/toddawhittaker/kite-and-key
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build (and push on push:main)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: prod
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=prod
+          cache-to: type=gha,mode=max,scope=prod

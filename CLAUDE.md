@@ -129,6 +129,7 @@ docker compose run --rm app pnpm payload migrate                 # apply (entryp
 docker compose run --rm app pnpm seed                            # dev-only: first admin + sample content
 docker compose run --rm app pnpm generate:types                 # regen src/payload-types.ts
 docker compose run --rm app pnpm lint
+docker compose run --rm app pnpm typecheck      # next typegen + tsc --noEmit
 docker compose run --rm app pnpm test           # Vitest unit + integration (fast, no browser)
 docker compose run --rm app pnpm test:coverage  # + coverage report
 docker compose build                      # rebuild images after dependency/Dockerfile changes
@@ -140,15 +141,13 @@ docker compose down -v                    # stop + wipe EVERYTHING incl. the DB 
 
 **Dependency changes** (anything touching `package.json`/`pnpm-lock.yaml`): the anonymous `node_modules`/`.next` volumes persist across `docker compose up` recreations independent of image rebuilds, so they can go stale relative to a freshly rebuilt image. Use `docker compose up --build -V` to rebuild and renew just those anonymous volumes. Reserve `docker compose down -v` for genuine fresh-DB testing — it also wipes `pgdata`.
 
-**End-to-end tests (Playwright).** The `app` (dev) image deliberately has **no browser** (`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`), so `pnpm test:e2e` only runs from the dedicated `e2e` image. With the stack up + seeded, on **Linux**:
+**End-to-end tests (Playwright).** The `app` (dev) image deliberately has **no browser** (`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`), so `pnpm test:e2e` only runs from the dedicated `e2e` image, driven over the compose network — no `--network host`, cross-platform (Linux/macOS/Windows Docker alike). This is the invocation CI uses. With the stack up + seeded:
 ```
-docker build --target e2e -t kite-and-key-e2e .
-docker run --rm --network host \
-  -e E2E_BASE_URL=http://localhost:3000 \
-  -e SEED_ADMIN_EMAIL="$SEED_ADMIN_EMAIL" -e SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" \
-  kite-and-key-e2e pnpm test:e2e
+docker compose --profile e2e up -d --wait db app
+docker compose run --rm app pnpm seed
+docker compose run --rm e2e pnpm test:e2e
 ```
-`--network host` is load-bearing: the browser's origin must be `localhost` — a compose service-name origin fails two ways (Chromium force-upgrades any bare `app` host to HTTPS because `.app` is HSTS-preloaded, and Next 15's `allowedDevOrigins` blocks the admin panel's `/_next/*` from non-`localhost` origins). Non-Linux contributors run it on the host instead: `pnpm exec playwright install --with-deps chromium && pnpm test:e2e`. A clean cross-platform in-container path (a compose network alias not under `.app` + an env-gated `allowedDevOrigins`) is deferred to the CI/CD pass.
+The `app` service carries a network alias `webapp` (not under the `.app` gTLD, so Chromium doesn't force-HTTPS-upgrade it via the static HSTS-preload list) and `ALLOWED_DEV_ORIGINS: webapp`, which `next.config.ts` turns into an env-gated `allowedDevOrigins` entry — unblocking the admin panel's `/_next/*` HMR/RSC requests from that origin (dev-server only; inert in prod). The `e2e` service points Playwright at `http://webapp:3000` accordingly.
 
 First run on a fresh machine: copy `.env.example` to `.env` and set `PAYLOAD_SECRET` (`openssl rand -hex 32`) and `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, then:
 ```
@@ -158,3 +157,5 @@ docker compose up -d app                                          # entrypoint a
 docker compose run --rm app pnpm seed
 ```
 Then visit `http://localhost:3000` and `http://localhost:3000/admin` (log in with `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`).
+
+**CI.** `.github/workflows/ci.yml` runs on every PR and on push to `main`: `static` (lint, typecheck, `generate:types` drift check — direct on the runner), `test` (Vitest unit + integration with coverage, via `docker compose`), and `e2e` (Playwright, via `docker compose --profile e2e`) run in parallel; a final `image` job builds the `prod` Dockerfile target and — only on push to `main` — pushes it to GHCR (`ghcr.io/toddawhittaker/kite-and-key`, tagged with the commit SHA and `latest`). No live deployment; the GHCR image is the handoff point.

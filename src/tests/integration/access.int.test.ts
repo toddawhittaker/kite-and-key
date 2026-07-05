@@ -114,6 +114,7 @@ describe('per-collection access baseline', () => {
           problem: richText('problem'),
           scope: 'scope',
           estimatedEffort: 'small',
+          status: 'submitted' as const,
         },
       })
 
@@ -206,6 +207,7 @@ describe('per-collection access baseline', () => {
         problem: richText('problem'),
         scope: 'scope',
         estimatedEffort: 'small' as const,
+        status: 'submitted' as const,
       }
 
       await expect(

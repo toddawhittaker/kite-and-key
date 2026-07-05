@@ -23,7 +23,8 @@
     "test:unit": "vitest run --project unit",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.85.2",
