@@ -28,12 +28,14 @@ export function Crest({
   size?: number
 }) {
   if (CREST_EXISTS) {
+    // Preserve the crest's intrinsic aspect ratio (762×691) rather than
+    // forcing a square, so the mark isn't stretched. `size` sets the width.
     return (
       <Image
         src="/kite-key-crest.png"
         alt="Kite & Key IT"
         width={size}
-        height={size}
+        height={Math.round((size * 691) / 762)}
         className="shrink-0"
       />
     )
