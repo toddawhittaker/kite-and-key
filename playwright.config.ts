@@ -22,10 +22,18 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // CI-only headroom: `next dev` compiles a route on first request, and the
+  // heavier `/admin` (Payload admin) bundle can outrun the 30s default on a
+  // slower CI runner (local stays fast — the compose `app` container's first
+  // hit is warmed by the CI e2e job before tests run; see ci.yml). Local
+  // defaults are unchanged (Playwright's own 30s/no-timeout defaults).
+  timeout: process.env.CI ? 90_000 : 30_000,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
+    actionTimeout: process.env.CI ? 30_000 : 0,
+    navigationTimeout: process.env.CI ? 60_000 : 0,
     // No longer load-bearing now that `webapp` (top-of-file note) sidesteps
     // the `.app` HSTS-preload issue entirely — kept as a harmless no-op in
     // case a future hostname trips Chromium's broader "upgrade unrecognized

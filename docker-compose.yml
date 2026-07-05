@@ -100,6 +100,9 @@ services:
     build:
       context: .
       target: e2e
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     depends_on:
       app:
         condition: service_healthy
@@ -109,6 +112,14 @@ services:
       E2E_BASE_URL: http://webapp:3000
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+    volumes:
+      - .:/app
+      # Anonymous volume so the bind mount doesn't shadow the image's
+      # installed deps/browsers (mirrors `app`'s pattern). Also means
+      # `playwright-report/` (written to /app by the html reporter) lands
+      # on the host/runner instead of vanishing with the `--rm` container —
+      # what CI's failure-only artifact upload needs.
+      - /app/node_modules
 
 volumes:
   pgdata:

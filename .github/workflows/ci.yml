@@ -154,6 +154,16 @@ jobs:
       - name: seed
         run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm app pnpm seed
 
+      - name: Warm the /admin route (Next dev compiles it on first request)
+        # `next dev` compiles a route on first hit; the heavier `/admin`
+        # (Payload admin) bundle can take longer than Playwright's action
+        # timeout on a slower CI runner. Compiling it here, outside the
+        # timed test, is what playwright.config.ts's CI-only timeout bump
+        # is paired with. Fails fast + clearly if it never compiles.
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T app \
+            node -e "const u='http://localhost:3000/admin';(async()=>{const s=Date.now();while(Date.now()-s<180000){try{const r=await fetch(u);if(r.ok){console.log('admin compiled in',Date.now()-s,'ms');process.exit(0)}}catch{}await new Promise(r=>setTimeout(r,2000))}console.error('admin never compiled');process.exit(1)})()"
+
       - name: run e2e
         run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm e2e pnpm test:e2e
 
