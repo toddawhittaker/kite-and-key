@@ -1,6 +1,7 @@
 import { RichText } from '@payloadcms/richtext-lexical/react'
 
 import { Card } from '@/components/card'
+import { Crest } from '@/components/crest'
 import { Icon } from '@/components/icon'
 import { IconTile } from '@/components/icon-tile'
 import { PageContainer } from '@/components/page-container'
@@ -44,6 +45,11 @@ export default async function AboutPage() {
   return (
     <PageContainer>
       <section className="py-16">
+        <div className="mb-12 flex justify-center">
+          <div className="rounded-lg bg-brand-ink px-16 py-14">
+            <Crest variant="stacked" tagline tone="dark" size={96} />
+          </div>
+        </div>
         <span className="eyebrow text-muted">Our Mission</span>
         <h1 className="mt-6 max-w-3xl text-4xl font-bold text-brand-ink md:text-5xl">
           {about.heading}

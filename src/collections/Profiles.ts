@@ -62,6 +62,43 @@ export const Profiles: CollectionConfig = {
       label: 'Graduation year',
     },
     {
+      name: 'outcome',
+      type: 'group',
+      label: 'Outcome',
+      admin: {
+        description:
+          "Where this student's work led. Optional — leave the type blank to show no outcome.",
+      },
+      fields: [
+        {
+          name: 'type',
+          type: 'select',
+          label: 'Outcome type',
+          admin: {
+            description: 'Shown as a prominent pill on the student card.',
+          },
+          options: [
+            { label: 'Internship', value: 'internship' },
+            { label: 'Co-op', value: 'co-op' },
+            { label: 'New Position', value: 'new-position' },
+            { label: 'Full-time Offer', value: 'full-time-offer' },
+            { label: 'Promotion', value: 'promotion' },
+            { label: 'Research Role', value: 'research-role' },
+            { label: 'Grad School', value: 'grad-school' },
+          ],
+        },
+        {
+          name: 'detail',
+          type: 'text',
+          label: 'Detail',
+          admin: {
+            description:
+              'Optional specifics, e.g. "SWE Intern, Nationwide". Factual and concrete — see kk-voice.',
+          },
+        },
+      ],
+    },
+    {
       name: 'bio',
       type: 'richText',
       label: 'Bio',

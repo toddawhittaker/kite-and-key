@@ -64,6 +64,30 @@ export function profileTypeLabel(profileType: ProfileType): string {
   return PROFILE_TYPE_LABELS[profileType]
 }
 
+export type OutcomeType =
+  | 'internship'
+  | 'co-op'
+  | 'new-position'
+  | 'full-time-offer'
+  | 'promotion'
+  | 'research-role'
+  | 'grad-school'
+
+const OUTCOME_TYPE_LABELS: Record<OutcomeType, string> = {
+  internship: 'Internship',
+  'co-op': 'Co-op',
+  'new-position': 'New Position',
+  'full-time-offer': 'Full-time Offer',
+  promotion: 'Promotion',
+  'research-role': 'Research Role',
+  'grad-school': 'Grad School',
+}
+
+/** Real Profiles.outcome.type value -> display label (StudentCard's outcome pill, see plan §5). */
+export function outcomeTypeLabel(type: OutcomeType): string {
+  return OUTCOME_TYPE_LABELS[type]
+}
+
 /**
  * Normalizes a Payload upload relationship (populated Media doc, a bare id
  * when unpopulated/depth:0, or absent) into the `{ url, alt }` shape the

@@ -25,7 +25,7 @@ export function SiteHeader() {
       <PageContainer>
         <div className="flex h-24 items-center justify-between">
           <Link href="/" className="shrink-0">
-            <Crest size={36} />
+            <Crest variant="horizontal" size={34} />
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm font-bold md:flex">

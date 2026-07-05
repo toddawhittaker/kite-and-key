@@ -27,10 +27,7 @@ export function SiteFooter() {
       <PageContainer>
         <div className="grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Crest tone="dark" size={36} />
-            <p className="mt-4 text-sm font-bold tracking-widest text-inverse-muted uppercase">
-              Apply. Solve. Advance.
-            </p>
+            <Crest variant="stacked" tagline tone="dark" size={68} />
           </div>
 
           <div>

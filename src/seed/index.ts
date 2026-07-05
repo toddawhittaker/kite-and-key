@@ -55,6 +55,7 @@ async function run() {
       profileType: 'student' as const,
       program: 'B.S. Computer Science',
       bio: richText('Placeholder bio for a sample student profile.'),
+      outcome: { type: 'internship' as const, detail: 'SWE Intern — sample data' },
     },
     {
       slug: 'sample-profile-two',
@@ -62,6 +63,7 @@ async function run() {
       profileType: 'student' as const,
       program: 'B.S. Computing Science',
       bio: richText('Placeholder bio for a sample student profile.'),
+      outcome: { type: 'new-position' as const },
     },
   ]
   const profileIds: Record<string, number> = {}
