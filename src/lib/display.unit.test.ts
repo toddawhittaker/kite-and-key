@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { eventTypeToIcon, humanizePillar, pillarToIcon, profileTypeLabel } from './display'
+import {
+  eventTypeToIcon,
+  humanizePillar,
+  mediaImage,
+  pillarToIcon,
+  profileTypeLabel,
+} from './display'
 
 /**
  * Contract for the design-system restyle's pillar/eventType/profileType
@@ -57,5 +63,40 @@ describe('profileTypeLabel', () => {
     expect(profileTypeLabel('team')).toBe('Team')
     expect(profileTypeLabel('faculty')).toBe('Faculty')
     expect(profileTypeLabel('alum')).toBe('Alum')
+  })
+})
+
+// `mediaImage` is beyond the tester's original contract (added by the
+// implementer to normalize Payload upload relationships for card
+// components) but lives in the same module and is exercised nowhere else —
+// added here post-implementation to close the `src/lib/**` coverage gate
+// (a real gap, not gold-plating: `pnpm test:coverage` failed the 90%
+// threshold on this file without it).
+describe('mediaImage', () => {
+  it('returns undefined for null/undefined media', () => {
+    expect(mediaImage(null)).toBeUndefined()
+    expect(mediaImage(undefined)).toBeUndefined()
+  })
+
+  it('returns undefined for a bare id (unpopulated relationship, depth:0)', () => {
+    expect(mediaImage(42)).toBeUndefined()
+  })
+
+  it('returns undefined when the populated doc has no url', () => {
+    expect(mediaImage({ alt: 'no url here' })).toBeUndefined()
+  })
+
+  it('normalizes a populated Media doc into { url, alt }', () => {
+    expect(mediaImage({ url: '/api/media/file/photo.png', alt: 'A photo' })).toEqual({
+      url: '/api/media/file/photo.png',
+      alt: 'A photo',
+    })
+  })
+
+  it('omits alt (rather than fabricating one) when the doc has no alt text', () => {
+    expect(mediaImage({ url: '/api/media/file/photo.png' })).toEqual({
+      url: '/api/media/file/photo.png',
+      alt: undefined,
+    })
   })
 })
