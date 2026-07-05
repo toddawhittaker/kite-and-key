@@ -17,6 +17,25 @@ test.describe('site header: desktop nav', () => {
       await expect(page.getByRole('link', { name: label, exact: true })).toBeVisible()
     }
   })
+
+  test('marks the current page active via aria-current, and only the current page', async ({
+    page,
+  }) => {
+    // Review-fix batch: NavLink [Client] (usePathname) sets aria-current="page"
+    // on the nav link matching the current route (docs/plans review-fix note).
+    await page.goto('/projects')
+    await expect(page.getByRole('link', { name: 'Projects', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    // A non-current link must not carry aria-current at all.
+    await expect(page.getByRole('link', { name: 'About', exact: true })).not.toHaveAttribute(
+      'aria-current',
+    )
+    await expect(page.getByRole('link', { name: 'Blog', exact: true })).not.toHaveAttribute(
+      'aria-current',
+    )
+  })
 })
 
 test.describe('mobile navigation (< md viewport)', () => {
