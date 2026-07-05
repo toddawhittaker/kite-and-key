@@ -34,6 +34,12 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
+    // Lets the Local API tell collections without `versions.drafts` (e.g.
+    // PartnerOpportunities) apart from draft-enabled ones at the type
+    // level — without it, `create`/`find` calls against a no-drafts
+    // collection can fail to resolve either overload. No schema/runtime
+    // impact; type-generation only.
+    strictDraftTypes: true,
   },
   db: postgresAdapter({
     pool: {

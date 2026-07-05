@@ -1,0 +1,16 @@
+# CI override — layered on top of docker-compose.yml in the `test`/`e2e`
+# GitHub Actions jobs (`docker compose -f docker-compose.yml -f
+# docker-compose.ci.yml ...`). Points `app`/`e2e` at the image buildx already
+# built + loaded (`kite-and-key:dev` / `kite-and-key:e2e`, gha-cached) instead
+# of the base file's `build:` block, and `pull_policy: never` stops compose
+# from trying to pull or rebuild over it. Not used for local dev.
+services:
+  app:
+    image: kite-and-key:dev
+    pull_policy: never
+    build: !reset null
+
+  e2e:
+    image: kite-and-key:e2e
+    pull_policy: never
+    build: !reset null
