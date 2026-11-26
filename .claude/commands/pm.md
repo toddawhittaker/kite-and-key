@@ -29,7 +29,7 @@ When unsure which bucket, say which you picked and why in one line, then proceed
 
 **5 — Synthesize & fix (reuse warm agents).** Collect findings, dedupe, rank by severity. Hand the concrete list to the implementer — **continue the existing implementer instance with `SendMessage`, do not cold-spawn a fresh one**; it still has the plan and its own changes in context, so it skips re-reading. Likewise re-run a review by `SendMessage` to the same reviewer/`review-lean` instance rather than a new spawn. Only cold-spawn if an instance was never created or its context is gone. Loop until clean or until a trade-off needs the user's call.
 
-**6 — Ship (GitHub, via `gh`).** Once reviews are green — skip this whole phase if there's no GitHub remote yet (say so and stop after the local change):
+**6 — Ship (GitHub, via `gh`).** Once reviews are green:
 - Work on a **feature branch**; never commit directly to the default branch (create one if needed).
 - Commit with a clear message. **Pushing and opening the PR are outward-facing — do them only with the user's go-ahead**, unless they've said to ship autonomously. Draft the PR body from the spec + plan + review synthesis: what changed and why, which reviews ran/were skipped, and test evidence. Optionally post findings as inline comments with `/code-review --comment`.
 - Let CI run. If checks go red, route the failure back through the fix loop (warm `implementer`) and re-push; watch with `gh pr checks`, or a `/loop` if it's slow.
@@ -37,4 +37,4 @@ When unsure which bucket, say which you picked and why in one line, then proceed
 
 **7 — Report.** Summarize for the user: what changed, what each review found and how it was resolved, what you skipped, PR/CI status, and anything still open. Keep spec/plan/review artifacts in `docs/` as the durable record.
 
-Guardrails: a *first* spawn is cold, so give each a tight, self-contained brief and the paths it needs; specialists share durable state through files in `docs/`, not memory. But within one feature's fix/re-review loop, reuse warm instances via `SendMessage` (step 5) rather than paying the cold re-read again. Reviews rely on git; if the repo isn't initialized yet, have reviewers read the changed files directly. Don't over-spawn — match the specialist set (and mode) to the size of the change.
+Guardrails: a *first* spawn is cold, so give each a tight, self-contained brief and the paths it needs; specialists share durable state through files in `docs/`, not memory. But within one feature's fix/re-review loop, reuse warm instances via `SendMessage` (step 5) rather than paying the cold re-read again. Don't over-spawn — match the specialist set (and mode) to the size of the change.
